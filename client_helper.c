@@ -1,7 +1,8 @@
 #include <netdb.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "clients.h" 
+
+#include "client_helper.h" 
 
 struct clientsinfo *add_client(struct clientsinfo *head, int sockfd, char *name) {
 	struct clientsinfo *new = malloc(sizeof (struct clientsinfo));
@@ -22,7 +23,6 @@ struct clientsinfo *add_client(struct clientsinfo *head, int sockfd, char *name)
 }
 
 void remove_client(struct clientsinfo *node) {
-
 	if (node->right)
 		node->right->left = node->left;	
 

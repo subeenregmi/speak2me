@@ -5,7 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "clients.h"
+#include "client_helper.h"
 
 #define MAX_CONNECTIONS 5
 #define MAX_NAME_LENGTH 64
