@@ -5,7 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "client_helper.h"
+#include "utils.h"
 
 #define MAX_CONNECTIONS 5
 #define MAX_NAME_LENGTH 64
@@ -16,10 +16,7 @@ int clients_i = 0;
 struct clientsinfo clients;
 struct clientsinfo *head = &clients;
 
-int handle_client(void *arg) {
-
-	struct clientsinfo *client = (struct clientsinfo*)arg;
-
+void get_username(struct clientsinfo *client) {
 	char welcome[] = "Welcome to subeen's chat!";
 	send(client->fd, welcome, strlen(welcome), 0);
 
@@ -32,17 +29,24 @@ int handle_client(void *arg) {
 	if (bytes == 0) {
 		printf("Client %d has left during name prompt!\n", client->fd);
 		remove_client(client);
-		return 1;
+		exit(1);
 	}
 	if (bytes == -1) {
 		printf("Client error!\n");
 		printf("client.fd = %d\n", client->fd);
 		printf("client.name = %s\n", client->name);
 		remove_client(client);
-		return 1;
+		exit(1);
 	}
 	client->name = name;
 	printf("User %s has been succesfully connected!\n", name);
+}
+
+int handle_client(void *arg) {
+
+	struct clientsinfo *client = (struct clientsinfo*)arg;
+
+	get_username(client);	
 
 	while (1) {
 		char msg[1024] = "";
@@ -75,51 +79,12 @@ int handle_client(void *arg) {
 	return 1;
 }
 
-int main(void) {
-	int status;
-
-	struct addrinfo hints;
-	memset(&hints, 0, sizeof hints);
-	hints.ai_flags = AI_PASSIVE;
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_STREAM;
-
-	struct addrinfo *results;
-
-	if ((status = getaddrinfo(NULL, "5001", &hints, &results)) != 0) {
-		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
-		return 2;
-	}
-
-	int sockfd = socket(results->ai_family, results->ai_socktype, results->ai_protocol);
-	if (sockfd == -1) {
-		perror("socket");	
-		return 2;
-	}
-	
-	int yes = 1;
-	if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof yes) == -1) {
-		perror("setsockopt");
-		return 2;
-	}
-
-	int sockbind = bind(sockfd, results->ai_addr, results->ai_addrlen);
-	if (sockbind == -1) {
-		perror("bind");
-		return 2;
-	}
-
-	int socklisten = listen(sockfd, MAX_CONNECTIONS);
-	if (socklisten == -1) {
-		perror("listen");
-		return 2;
-	}
-
+void handle_incoming_client(int fd) {
 	while (1) {
 		struct sockaddr_storage client;
 		socklen_t client_sock_size = sizeof client;
 
-		int clientfd = accept(sockfd, (struct sockaddr *)&client, &client_sock_size);
+		int clientfd = accept(fd, (struct sockaddr *)&client, &client_sock_size);
 		printf("A new client has joined!\n");
 
 		struct clientsinfo *new = add_client(head, clientfd, "");
@@ -129,4 +94,18 @@ int main(void) {
 
 		clients_i++;
 	}
+
+}
+
+int main(void) {
+
+	struct addrinfo hints = generate_socket_hints();
+	struct addrinfo *results;
+
+	get_address_info(&hints, &results);
+	int sockfd = create_socket(results);
+	set_port_reuse(sockfd);
+	bind_socket(sockfd, results);
+	listen_socket(sockfd, MAX_CONNECTIONS);
+	handle_incoming_client(sockfd);
 }

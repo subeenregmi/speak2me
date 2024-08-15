@@ -6,6 +6,8 @@
 #include <unistd.h>
 #include <stdlib.h>
 
+#include "utils.h"
+
 thrd_t listener;
 
 int listen_to_messages(void *arg) {
@@ -18,42 +20,22 @@ int listen_to_messages(void *arg) {
 			printf("Server has disconnected, bye!\n");
 			exit(1);
 		}
+		
 		printf("%s\n", msg);
 	}
 
 	return 1;
 }
 
+
 int main(void) {
-	int status;
-
-	struct addrinfo hints;
-	memset(&hints, 0, sizeof hints);
-	hints.ai_flags = AI_PASSIVE;
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_STREAM;
-
+	struct addrinfo hints = generate_socket_hints();
 	struct addrinfo *results;
 
-	if ((status = getaddrinfo(NULL, "5001", &hints, &results)) != 0) {
-		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
-		return 2;
-	}
-	
-	int sockfd = socket(results->ai_family, results->ai_socktype, results->ai_protocol);
+	get_address_info(&hints, &results);
+	int sockfd = create_socket(results);
+	connect_socket(sockfd, results);
 
-	if (sockfd == -1) {
-		perror("socket");
-		return 2;
-	}
-
-	int res = connect(sockfd, results->ai_addr, results->ai_addrlen);
-
-	if (res == -1) {
-		perror("connect");
-		return 2;
-	}
-	
 	thrd_create(&listener, listen_to_messages, &sockfd);
 	thrd_detach(listener);
 
