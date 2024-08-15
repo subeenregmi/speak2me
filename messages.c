@@ -67,7 +67,15 @@ void display_user_input(struct winsize *w) {
 
 void display_messages(struct winsize *w, struct message *msg_tail){
 	int available_lines= w->ws_row - 6;
+	if (msg_tail == NULL) {
+		for(int i=0; i<available_lines-1; i++){
+			printf("\n");
+		}
+		return;
+	}
+
 	struct message *node = msg_tail;
+
 	
 	while(available_lines > 0){
 		char *message;

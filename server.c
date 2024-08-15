@@ -6,6 +6,7 @@
 #include <stdlib.h>
 
 #include "utils.h"
+#include "messages.h"
 
 #define MAX_CONNECTIONS 5
 #define MAX_NAME_LENGTH 64
@@ -15,6 +16,8 @@ int clients_i = 0;
 
 struct clientsinfo clients;
 struct clientsinfo *head = &clients;
+
+struct message msgs;
 
 void get_username(struct clientsinfo *client) {
 	char welcome[] = "Welcome to subeen's chat!";
@@ -66,6 +69,7 @@ int handle_client(void *arg) {
 		char new_msg[2048] = "";
 		printf("%s (fd %d): %s\n", client->name, client->fd, msg);
 		sprintf(new_msg, "%s : %s", client->name, msg);
+		add_message(&msgs, client->name, msg);
 		
 		// Send messages to all clients
 		struct clientsinfo *node = head;
