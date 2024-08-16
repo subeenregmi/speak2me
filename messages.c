@@ -68,7 +68,7 @@ void display_user_input(struct winsize *w) {
 void display_messages(struct winsize *w, struct message *msg_tail){
 	int available_lines= w->ws_row - 6;
 	if (msg_tail == NULL) {
-		for(int i=0; i<available_lines-1; i++){
+		for(int i=0; i<available_lines; i++){
 			printf("\n");
 		}
 		return;
@@ -86,6 +86,9 @@ void display_messages(struct winsize *w, struct message *msg_tail){
 			break;
 		}
 		if(node->left == NULL){
+			break;
+		}
+		if(node->left->left == NULL) {
 			break;
 		}
 		available_lines -= lines_to_take;
@@ -112,6 +115,7 @@ void handle_user_input(struct winsize *w, char *msg){
 	msg[strlen(msg)-1] = '\0';
 }
 
+/*
 void start_message_displayer(struct message *msgs){
 	clear_screen();
 	struct message *tail = msgs;
@@ -122,15 +126,19 @@ void start_message_displayer(struct message *msgs){
 
 	while(1){
 		struct winsize w = get_window_size();
-		char *msg = malloc(sizeof(char)*1024);
+		char *premsg = malloc(sizeof(char)*1024);
 		clear_screen();
 		display_title(&w, "Subeen's Chatroom!");
 		display_messages(&w, tail);
 		display_user_input(&w);
-		handle_user_input(&w, msg);
+		handle_user_input(&w, premsg);
+		char *msg = malloc(sizeof(char) * strlen(premsg));
+		strcpy(msg, premsg);
+		free(premsg);
 		tail = add_message(msgs, "Subeen", msg);
 	}
 }
+*/
 struct message *add_message(struct message *head, char *user, char *message){
 	struct message *new = malloc(sizeof (struct message));
 	if (head == NULL) {

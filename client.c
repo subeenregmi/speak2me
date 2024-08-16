@@ -11,6 +11,7 @@
 #include "messages.h"
 
 thrd_t listener;
+mtx_t display_mtx;
 struct message msgs;
 struct message *tail;
 
@@ -25,21 +26,30 @@ struct message *get_tail(struct message *m) {
 	return tail;
 }
 
+void display_ui(struct winsize w) {
+	clear_screen();
+	display_title(&w, "Subeen's Chatroom!");
+	display_messages(&w, tail);
+	display_user_input(&w);
+}
+
 int listen_to_messages(void *arg) {
 	int sockfd = *(int *)arg;
 	while (1) {
 		struct winsize w = get_window_size();
-		char *msg = malloc(sizeof(char)*1024);
-		int bytes = recv(sockfd, msg, 1024, 0);
+		char *buffer = malloc(sizeof(char)*1024);
+		int bytes = recv(sockfd, buffer, 1024, 0);
 		if (bytes == 0) {
 			printf("Server has disconnected, bye!\n");
 			exit(1);
 		}
+		char *msg = malloc(sizeof(char) * strlen(buffer));
+		strcpy(msg, buffer);
+		free(buffer);
 		tail = add_message(&msgs, "Other", msg);
-		clear_screen();
-		display_title(&w, "Subeen's Chatroom!");
-		display_messages(&w, tail);
-		display_user_input(&w);
+		display_ui(w);
+		gotoxy(5, w.ws_row-1);
+		fflush(stdout);
 	}
 
 	return 1;
@@ -48,14 +58,14 @@ int listen_to_messages(void *arg) {
 void handle_client(int fd) {
 	while (1) {
 		struct winsize w = get_window_size();
-		clear_screen();
-		display_title(&w, "Subeen's Chatroom!");
-		display_messages(&w, tail);
-		display_user_input(&w);
+		display_ui(w);
 
-		char *msg = malloc(sizeof(char)*1024);
-		handle_user_input(&w, msg);
-
+		char *buffer = malloc(sizeof(char)*1024);
+		handle_user_input(&w, buffer);
+		char *msg = malloc(sizeof(char) * strlen(buffer));
+		strcpy(msg, buffer);
+		free(buffer);
+		
 		if (*msg) {
 			tail = add_message(&msgs, "Me", msg);
 			send(fd, msg, strlen(msg), 0);
@@ -76,4 +86,5 @@ int main(void) {
 	thrd_detach(listener);
 	
 	handle_client(sockfd);
+
 }

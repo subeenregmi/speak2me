@@ -4,6 +4,7 @@
 #include <threads.h>
 #include <string.h>
 #include <stdlib.h>
+#include <regex.h>
 
 #include "utils.h"
 #include "messages.h"
@@ -19,37 +20,11 @@ struct clientsinfo *head = &clients;
 
 struct message msgs;
 
-void get_username(struct clientsinfo *client) {
-	char welcome[] = "Welcome to subeen's chat!";
-	send(client->fd, welcome, strlen(welcome), 0);
-
-	char name_prompt[] = "Enter your name: ";
-	send(client->fd, name_prompt, strlen(name_prompt), 0);
-	
-	char name[1024] = "";
-	int bytes = recv(client->fd, name, 1024, 0);
-
-	if (bytes == 0) {
-		printf("Client %d has left during name prompt!\n", client->fd);
-		remove_client(client);
-		exit(1);
-	}
-	if (bytes == -1) {
-		printf("Client error!\n");
-		printf("client.fd = %d\n", client->fd);
-		printf("client.name = %s\n", client->name);
-		remove_client(client);
-		exit(1);
-	}
-	client->name = name;
-	printf("User %s has been succesfully connected!\n", name);
-}
-
 int handle_client(void *arg) {
 
 	struct clientsinfo *client = (struct clientsinfo*)arg;
-
-	get_username(client);	
+	client->name = "Anon";
+	printf("Anon has joined!\n");
 
 	while (1) {
 		char msg[1024] = "";
