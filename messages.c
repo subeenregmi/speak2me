@@ -44,7 +44,7 @@ void display_title(struct winsize *w, char *title){
 	printf("\n");
 }
 
-void display_user_input(struct winsize *w) {
+void display_user_input(struct winsize *w, char *buffer) {
 	for(int i=0; i<w->ws_col; i++){
 		printf("%c", HOR_BORDER);
 	}

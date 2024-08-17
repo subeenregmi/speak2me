@@ -30,7 +30,15 @@ void display_ui(struct winsize w) {
 	clear_screen();
 	display_title(&w, "Subeen's Chatroom!");
 	display_messages(&w, tail);
-	display_user_input(&w);
+	display_user_input(&w, NULL);
+	gotoxy(5, w.ws_row-1);
+	/*
+	if (strlen(buffer) > 0) {
+		printf("%s", buffer);
+		gotoxy(5, w.ws_row-1 + (int)strlen(buffer));
+	}
+	*/
+	fflush(stdout);
 }
 
 int listen_to_messages(void *arg) {
@@ -47,11 +55,10 @@ int listen_to_messages(void *arg) {
 		strcpy(msg, buffer);
 		free(buffer);
 		tail = add_message(&msgs, "Other", msg);
+		char stdin_buffer[1024];
 		display_ui(w);
-		gotoxy(5, w.ws_row-1);
-		fflush(stdout);
+		read(STDIN_FILENO, stdin_buffer, 1024);
 	}
-
 	return 1;
 }
 
@@ -86,5 +93,4 @@ int main(void) {
 	thrd_detach(listener);
 	
 	handle_client(sockfd);
-
 }
