@@ -6,6 +6,7 @@
 #include <threads.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <termio.h>
 
 #include "utils.h"
 #include "messages.h"
@@ -14,6 +15,7 @@ thrd_t listener;
 mtx_t display_mtx;
 struct message msgs;
 struct message *tail;
+char *input_buffer;
 
 struct message *get_tail(struct message *m) {
 	if (m == NULL) {
@@ -30,8 +32,8 @@ void display_ui(struct winsize w) {
 	clear_screen();
 	display_title(&w, "Subeen's Chatroom!");
 	display_messages(&w, tail);
-	display_user_input(&w, NULL);
-	gotoxy(5, w.ws_row-1);
+	display_user_input(&w, input_buffer);
+	gotoxy(5 + (int)strlen(input_buffer), w.ws_row-1);
 	/*
 	if (strlen(buffer) > 0) {
 		printf("%s", buffer);
@@ -55,9 +57,7 @@ int listen_to_messages(void *arg) {
 		strcpy(msg, buffer);
 		free(buffer);
 		tail = add_message(&msgs, "Other", msg);
-		char stdin_buffer[1024];
 		display_ui(w);
-		read(STDIN_FILENO, stdin_buffer, 1024);
 	}
 	return 1;
 }
@@ -67,11 +67,10 @@ void handle_client(int fd) {
 		struct winsize w = get_window_size();
 		display_ui(w);
 
-		char *buffer = malloc(sizeof(char)*1024);
-		handle_user_input(&w, buffer);
-		char *msg = malloc(sizeof(char) * strlen(buffer));
-		strcpy(msg, buffer);
-		free(buffer);
+		handle_user_input(&w, input_buffer);
+		char *msg = malloc(sizeof(char) * strlen(input_buffer));
+		strcpy(msg, input_buffer);
+		strcpy(input_buffer, "");
 		
 		if (*msg) {
 			tail = add_message(&msgs, "Me", msg);
@@ -82,6 +81,16 @@ void handle_client(int fd) {
 
 
 int main(void) {
+
+	static struct termios oldt, newt;
+
+	tcgetattr( STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON | ECHO);          
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+
+	input_buffer = calloc(1024, sizeof(char));
+	
 	struct addrinfo hints = generate_socket_hints();
 	struct addrinfo *results;
 

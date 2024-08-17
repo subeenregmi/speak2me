@@ -3,7 +3,6 @@
 #include <string.h>
 #include <unistd.h> 
 #include <sys/ioctl.h>
-
 #include "messages.h"
 
 #define HOR_BORDER '-'
@@ -52,9 +51,14 @@ void display_user_input(struct winsize *w, char *buffer) {
 
 	printf("%c", VERT_BORDER);
 
+	int usedspace = 0;
 	printf(" %c", INPUT_CHAR);
+	if (strlen(buffer) > 0) {
+		usedspace = strlen(buffer)+1;
+		printf(" %s", buffer);
+	}
 
-	for(int i=0; i<w->ws_col-4; i++){
+	for(int i=0; i<w->ws_col-4-usedspace; i++){
 		printf(" ");
 	}
 
@@ -111,8 +115,24 @@ void handle_user_input(struct winsize *w, char *msg){
 	int user_y = w->ws_row - 1;
 	gotoxy(user_x, user_y);
 
-	fgets(msg, 1024, stdin);
-	msg[strlen(msg)-1] = '\0';
+	char c;
+	int i=0;
+	while((c = getchar()) != '\n') {
+		if (c == 127) {
+			i--;
+			if (i < 0) {
+				i = 0;
+			}
+			printf("\b \b");
+			msg[i] = '\0';
+			continue;
+		}
+		putchar(c);
+		msg[i] = c;
+		i++;
+	}
+	msg[i++] = '\0';
+
 }
 
 /*
