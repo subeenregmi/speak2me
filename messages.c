@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -122,10 +123,15 @@ void handle_user_input(struct winsize *w, char *msg){
 			i--;
 			if (i < 0) {
 				i = 0;
+				msg[0] = '\0';
+				continue;
 			}
 			printf("\b \b");
 			msg[i] = '\0';
 			continue;
+		}
+		if (isprint(c) == 0) {
+			continue;	
 		}
 		putchar(c);
 		msg[i] = c;
@@ -135,30 +141,6 @@ void handle_user_input(struct winsize *w, char *msg){
 
 }
 
-/*
-void start_message_displayer(struct message *msgs){
-	clear_screen();
-	struct message *tail = msgs;
-
-	while(tail->right != NULL){
-		tail = tail->right;	
-	}
-
-	while(1){
-		struct winsize w = get_window_size();
-		char *premsg = malloc(sizeof(char)*1024);
-		clear_screen();
-		display_title(&w, "Subeen's Chatroom!");
-		display_messages(&w, tail);
-		display_user_input(&w);
-		handle_user_input(&w, premsg);
-		char *msg = malloc(sizeof(char) * strlen(premsg));
-		strcpy(msg, premsg);
-		free(premsg);
-		tail = add_message(msgs, "Subeen", msg);
-	}
-}
-*/
 struct message *add_message(struct message *head, char *user, char *message){
 	struct message *new = malloc(sizeof (struct message));
 	if (head == NULL) {
