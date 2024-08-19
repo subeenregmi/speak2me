@@ -27,7 +27,12 @@ struct packet {
 };
 
 void hex_format(char *dst, int src, unsigned int length);
+int validate_msg(struct message_payload msg);
 
+char *serialize_packet_type(char *buffer, enum Type type);
+char *serialize_data(char *buffer, char *data, unsigned int size_bytes);
+
+void serialize_message_payload(char *buffer, struct message_payload msg);
 int serialize_packet(struct packet *p, char *buffer);
 
 

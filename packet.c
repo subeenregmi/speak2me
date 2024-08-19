@@ -7,16 +7,36 @@ void hex_format(char *dst, int src, unsigned int length) {
 	sprintf(dst, "%0*x", length, src);
 }
 
+int validate_msg(struct message_payload msg) {
+	if (strlen(msg.channel) > CHANNEL_SIZE) {
+		return 1;
+	}
+
+	if (strlen(msg.from) > FROM_SIZE) {
+		return 1;
+	}
+
+	if (strlen(msg.to) > TO_SIZE) {
+		return 1;
+	}
+
+	if (strlen(msg.msg) > MSG_SIZE) {
+		return 1;
+	}
+
+	return 0;
+}
+
 char *serialize_packet_type(char *buffer, enum Type type) {
 	hex_format(buffer, type, 2);
 	return buffer+2;
 }
 
-char *serialize_data(char *buffer, char *data, unsigned int hex_length) {
+char *serialize_data(char *buffer, char *data, unsigned int size_bytes) {
 	int size = strlen(data);
-	hex_format(buffer, size, hex_length);
+	hex_format(buffer, size, size_bytes);
 
-	buffer += hex_length;
+	buffer += size_bytes;
 
 	for (int i = 0; i < size; i++) {
 		*buffer++ = data[i];
@@ -37,6 +57,9 @@ int serialize_packet(struct packet *p, char *buffer) {
 
 	switch (p->type) {
 		case MSG:
+			if (validate_msg(p->msg_p)) {
+				return 1;
+			}
 			serialize_message_payload(buffer, p->msg_p);
 			break;
 		case COMMAND:
