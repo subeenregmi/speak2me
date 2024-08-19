@@ -28,7 +28,6 @@ struct packet {
 
 void hex_format(char *dst, int src, unsigned int length);
 
-int check_sequence(unsigned short sequence);
 int serialize_packet(struct packet *p, char *buffer);
 
 
