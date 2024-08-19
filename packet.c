@@ -4,19 +4,16 @@
 #include "packet.h"
 
 
-void hex_format(char *dst, int src, unsigned int length) {
-	char format[10] = "%0";
-	char len[10];
-
-	sprintf(len, "%dx", length);
-	strcat(format, len);
-	sprintf(dst, format, src);
+inline void hex_format(char *dst, int src, unsigned int length) {
+	sprintf(dst, "%0*x", length, src);
 }
 
 int serialize_message_payload(struct message_payload msg, char *buffer) {
 	int ch_len = strlen(msg.channel);
 
 	char ch_size[2];
+
+	
 	sprintf(ch_size, "%01x", ch_len);
 
 	buffer[0] = ch_size[0];
@@ -62,6 +59,6 @@ int main() {
 	// int ret = serialize_packet(&p, serialized);
 	// printf("return: %d\nserialized: %s\n", ret, serialized);
 	char dst[100] = "";
-	hex_format(dst, 1331132113, 11);
+	hex_format(dst, 1331132, 1);
 	printf("formatted: %s\n", dst);
 }
