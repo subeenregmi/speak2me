@@ -87,7 +87,7 @@ int main(void) {
 	tcgetattr( STDIN_FILENO, &oldt);
 	newt = oldt;
 	newt.c_lflag &= ~(ICANON | ECHO);          
-    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+	tcsetattr(STDIN_FILENO, TCSANOW, &newt);
 
 	input_buffer = calloc(1024, sizeof(char));
 	
