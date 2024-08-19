@@ -12,21 +12,24 @@ char *serialize_packet_type(char *buffer, enum Type type) {
 	return buffer+2;
 }
 
-char *serialize_packet_channel(char *buffer, char *channel) {
-	int size = strlen(channel);
-	hex_format(buffer, size, 2);
+char *serialize_data(char *buffer, char *data, unsigned int hex_length) {
+	int size = strlen(data);
+	hex_format(buffer, size, hex_length);
 
-	buffer += 2;
+	buffer += hex_length;
 
-	for (int i = 0; i < strlen(channel); i++) {
-		*buffer++ = channel[i];
+	for (int i = 0; i < size; i++) {
+		*buffer++ = data[i];
 	}
 
 	return buffer;
 }
 
 void serialize_message_payload(char *buffer, struct message_payload msg) {
-	buffer = serialize_packet_channel(buffer, msg.channel);
+	buffer = serialize_data(buffer, msg.channel, 2);
+	buffer = serialize_data(buffer, msg.from, 2);
+	buffer = serialize_data(buffer, msg.to, 2);
+	buffer = serialize_data(buffer, msg.msg, 4);
 }
 
 int serialize_packet(struct packet *p, char *buffer) {
