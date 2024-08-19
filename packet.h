@@ -1,7 +1,10 @@
 #ifndef PACKET_H
 #define PACKET_H
 
-#define PAYLOAD_SIZE 1024
+#define CHANNEL_SIZE    256
+#define FROM_SIZE       256
+#define TO_SIZE         256
+#define MSG_SIZE       8192 
 
 enum Type {
     MSG = 0,
@@ -10,28 +13,23 @@ enum Type {
 };
 
 struct message_payload {
-    char channel[64];
-    char msg[956];
-};
-
-struct command_payload {
-    char command[1020];
-};
-
-struct connection_payload {
-    char channel[64];
-    char public_key[956];
+    char *channel;
+    char *from;
+    char *to;
+    char *msg;
 };
 
 struct packet {
-    char sequence;
-    char type;
-    char size[2];
+    enum Type type;
     union {
         struct message_payload msg_p;
-        struct command_payload cmd_p;
-        struct connection_payload conn_p;
     };
 };
+
+void hex_format(char *dst, int src, unsigned int length);
+
+int check_sequence(unsigned short sequence);
+int serialize_packet(struct packet *p, char *buffer);
+
 
 #endif // PACKET_H
