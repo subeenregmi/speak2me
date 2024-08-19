@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -29,14 +30,14 @@ int validate_msg(struct message_payload msg) {
 
 char *serialize_packet_type(char *buffer, enum Type type) {
 	hex_format(buffer, type, 2);
-	return buffer+2;
+	return buffer + 2;
 }
 
-char *serialize_data(char *buffer, char *data, unsigned int size_bytes) {
+char *serialize_data(char *buffer, char *data, unsigned int size_b) {
 	int size = strlen(data);
-	hex_format(buffer, size, size_bytes);
+	hex_format(buffer, size, size_b);
 
-	buffer += size_bytes;
+	buffer += size_b;
 
 	for (int i = 0; i < size; i++) {
 		*buffer++ = data[i];
@@ -70,6 +71,50 @@ int serialize_packet(struct packet *p, char *buffer) {
 	return 0;
 }
 
+char *deserialize_packet_type(struct packet *dst, char *src) {
+	char type_hex[2];
+	memcpy(type_hex, src, 2);
+
+	enum Type t = (enum Type) strtol(type_hex, NULL, 16);
+	dst->type = t;
+
+	return src + 2;
+}
+
+char *deserialize_data(char *dst, char *src, unsigned int size_b) {
+	char size_hex[size_b];
+	memcpy(size_hex, src, size_b);
+
+	int size = (int) strtol(size_hex, NULL, 16);
+	src += size_b;
+	memcpy(dst, src, size);
+
+	return src + size;
+}
+
+void deserialize_message_payload(struct packet *dst, char *src) {
+	src = deserialize_data(dst->msg_p.channel, src, 2);
+	src = deserialize_data(dst->msg_p.from, src, 2);
+	src = deserialize_data(dst->msg_p.to, src, 2);
+	src = deserialize_data(dst->msg_p.msg, src, 4);
+}
+
+int deserialize_packet(struct packet *dst, char *src) {
+	src = deserialize_packet_type(dst, src);
+
+	switch (dst->type) {
+		case MSG:
+			deserialize_message_payload(dst, src);
+			return validate_msg(dst->msg_p);
+		case COMMAND:
+			break;
+		case CONN:
+			break;
+	}
+
+	return 0;
+}
+
 int main() {
 	enum Type t = MSG;
 	struct message_payload msg = {
@@ -91,4 +136,28 @@ int main() {
 
 	int ret = serialize_packet(&p, serialized);
 	printf("return: %d\nserialized: %s\n", ret, serialized);
+
+
+	char channel[100] = "";
+	char from[100] = "";
+	char to[100] = "";
+	char msgp[100] = "";
+
+	struct message_payload post_msg = {
+		.channel = channel,
+		.from = from,
+		.to = to,
+		.msg = msgp,
+	};
+	struct packet post = {
+		.type = 99,
+		.msg_p = post_msg,
+	};
+	ret = deserialize_packet(&post, serialized);
+
+
+	printf("type: %d, msg-channel: %s, from: %s, to: %s, msg: %s\n", 
+			post.type, post.msg_p.channel, post.msg_p.from, post.msg_p.to, 
+			post.msg_p.msg);
+	printf("return: %d\n", ret);
 }
