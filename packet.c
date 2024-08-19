@@ -3,31 +3,25 @@
 
 #include "packet.h"
 
-
-inline void hex_format(char *dst, int src, unsigned int length) {
+void hex_format(char *dst, int src, unsigned int length) {
 	sprintf(dst, "%0*x", length, src);
 }
 
-int serialize_message_payload(struct message_payload msg, char *buffer) {
-	int ch_len = strlen(msg.channel);
+void serialize_packet_type(char *buffer, enum Type type) {
+	hex_format(buffer, type, 2);
+}
 
-	char ch_size[2];
-
-	
-	sprintf(ch_size, "%01x", ch_len);
-
-	buffer[0] = ch_size[0];
-
-	return 0;
+void serialize_message_payload(struct message_payload msg, char *buffer) {
+	int channel_len = strlen(msg.channel);
+	hex_format(buffer, channel_len, 1);
 }
 
 int serialize_packet(struct packet *p, char *buffer) {
-	buffer[0] = (char) p->type + 48;
-
+	serialize_packet_type(buffer, p->type);
 	int ret;
 	switch (p->type) {
 		case MSG:
-			ret = serialize_message_payload(p->msg_p, buffer+2);
+			break;
 		case COMMAND:
 			break;
 		case CONN:
@@ -56,9 +50,6 @@ int main() {
 
 	char serialized[1024] = "";
 
-	// int ret = serialize_packet(&p, serialized);
-	// printf("return: %d\nserialized: %s\n", ret, serialized);
-	char dst[100] = "";
-	hex_format(dst, 1331132, 1);
-	printf("formatted: %s\n", dst);
+	int ret = serialize_packet(&p, serialized);
+	printf("return: %d\nserialized: %s\n", ret, serialized);
 }
