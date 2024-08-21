@@ -9,6 +9,7 @@
 #include <termio.h>
 
 #include "utils.h"
+#include "tui.h"
 #include "messages.h"
 
 thrd_t listener;
