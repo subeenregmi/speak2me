@@ -10,6 +10,8 @@
 
 #define HOR_BORDER '-'
 #define VERT_BORDER '|'
+#define CORNER_BORDER '+'
+
 #define INPUT_CHAR '>'
 
 void clear_screen(){
@@ -83,7 +85,6 @@ void display_messages(struct winsize *w, struct message *msg_tail){
 
 	struct message *node = msg_tail;
 
-	
 	while(available_lines > 0){
 		char *message;
 		sprintf(message, "%s: %s\n", node->user, node->message);
@@ -140,4 +141,51 @@ void handle_user_input(struct winsize *w, char *msg){
 		i++;
 	}
 	msg[i++] = '\0';
+}
+
+void display_main_menu(struct winsize *w, char *message, char *name, char *server) {
+	int len = strlen(message);
+	for	(int j=0; j<w->ws_row - 1; j++) {
+		for (int i=0; i<w->ws_col; i++) {
+			if ((i == 0 && j == 0) ||
+				(i == w->ws_col - 1 && j == 0) ||
+				(i == w->ws_col - 1 && j == w->ws_row -2) ||
+				(i == 0 && j == w->ws_row -2)) 
+			{
+				putc(CORNER_BORDER, stdout);	
+			}
+			else if (j == 0 || j == w->ws_row - 2) {
+				putc(HOR_BORDER, stdout);
+			}
+			else if (i == 0 || i == w->ws_col - 1){
+				putc(VERT_BORDER, stdout);
+			}
+			else if (j == (w->ws_row / 2) - 5 && i == (w->ws_col - len)/ 2) {
+				printf("%s", message);
+				i += len;
+				printf(" ");
+			}
+			else {
+				printf(" ");
+			}
+		}
+		printf("\n");
+	}
+}
+
+void display_main_menu_buttons(struct winsize *w) {
+	
+}
+
+int main(void) {
+	struct winsize w = get_window_size();
+	
+	char *name = calloc(sizeof(char), 256);
+	char *server = calloc(sizeof(char), 256);
+	char *message = "Welcome to speak2me!";
+
+	display_main_menu(&w, message, name, server);
+	display_main_menu_buttons(&w);
+	free(name);
+	free(server);
 }

@@ -115,6 +115,7 @@ int deserialize_packet(struct packet *dst, char *src) {
 	return 0;
 }
 
+/*
 int main() {
 	enum Type t = MSG;
 	struct message_payload msg = {
@@ -161,3 +162,4 @@ int main() {
 			post.msg_p.msg);
 	printf("return: %d\n", ret);
 }
+*/

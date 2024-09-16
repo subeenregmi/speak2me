@@ -1,0 +1,7 @@
+*.o
+client
+server
+tui
+compile_commands.json
+.cache/
+.ccls-cache/
